@@ -1,6 +1,8 @@
 # bqn-pcre2
 Basic regex functionality via the pcre2 library.
 
+Requires installed pcre2 library and CBQN compiled with FFI support.
+
 `make` by default produces shared object files for UTF-8, 16 and 32. Use `make UTF8` to only make for UTF8, or similarly for UTF16 and UTF32.
 
 To import in UTF-32 mode use `pcre2 ← {utf⇐32} •Import "pcre2.bqn"`, similarly for UTF-16, UTF-8 is default.
