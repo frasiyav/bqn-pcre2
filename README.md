@@ -3,9 +3,11 @@ Basic regex functionality via the pcre2 library.
 
 Requires installed pcre2 library and CBQN compiled with FFI support.
 
-`make` by default produces shared object files for UTF-8, 16 and 32. Use `make UTF8` to only make for UTF8, or similarly for UTF16 and UTF32.
+`make` by default produces shared object files for character widths 8, 16 and 32.
 
-To import in UTF-32 mode use `pcre2 ← {utf⇐32} •Import "pcre2.bqn"`, similarly for UTF-16, UTF-8 is default.
+Use `make UTF8` to only make for UTF8, or similarly for `UTF16` and `UTF32`.
+
+To import in UTF mode use `pcre2 ← {utf⇐8} •Import "pcre2.bqn"`, and similarly `utf⇐16`, `utf⇐32`.
 
 ## Functions
 
@@ -45,8 +47,9 @@ Returns a namespace containing the compiled expression and the following functio
 
 ## Options
 Options are given as a namespace `{option⇐value, ...}` and can be passed as `𝕨` to `•Import` to set default, or passed to `Compile`, `_MatchAll`, and `_ReplaceAll_`.
-  * `utf` - Must be set when calling `•Import`. Set encoding width. Possible values: `8`, `16`, `32`. Default: `utf⇐8`.
+  * `utf` - Must be set when calling `•Import`. Sets encoding width. Possible values: `8`, `16`, `32`.
   * `jit` - Enable jit compiling of regular expressions. Default: `jit⇐1`.
+  * `ucp` - Use unicode properties to determine character types for \w, \d, as well as character cases. Default: `ucp⇐0`.
   * `multiline` - Multiline matching mode. Default: `multiline⇐1`.
   * `greedy` - If `0` inverts greedy modifiers. Default: `greedy⇐1`.
   * `anchored` - Force pattern anchoring. Default: `anchored⇐0`.
