@@ -46,9 +46,14 @@ BQNV substring_list_to_bqnv(CHAR_TYPE **strings, PCRE2_SIZE *lengths, BQNV* stri
     return bqn_makeObjVec(rc, stringlist);
 }
 
-int compile(CHAR_TYPE *pattern, pcre2_code **re, bool jit, bool multiline, bool greedy, bool anchored, bool caseless, bool extended) {
+int compile(CHAR_TYPE *pattern, pcre2_code **re,
+    bool jit, bool utf, bool ucp,
+    bool multiline, bool greedy, bool anchored,
+    bool caseless, bool extended) {
 
-    uint32_t options = PCRE2_UTF | PCRE2_UCP;
+    uint32_t options = 0;
+    if (utf) options |= PCRE2_UTF;
+    if (ucp) options |= PCRE2_UCP;
     if (multiline) options |= PCRE2_MULTILINE;
     if (!greedy) options |= PCRE2_UNGREEDY;
     if (anchored) options |= PCRE2_ANCHORED;
