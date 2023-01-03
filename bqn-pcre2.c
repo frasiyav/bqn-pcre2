@@ -3,23 +3,22 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#if UTF8
+#ifdef UTF16
+#define PCRE2_CODE_UNIT_WIDTH 16
+#define CHAR_TYPE PCRE2_UCHAR16
+#define BQN_MAKESTR bqn_makeC16Vec
+
+#elif UTF32
+#define PCRE2_CODE_UNIT_WIDTH 32
+#define CHAR_TYPE PCRE2_UCHAR32
+#define BQN_MAKESTR bqn_makeC32Vec
+
+#else
 #define PCRE2_CODE_UNIT_WIDTH 8
 #define CHAR_TYPE PCRE2_UCHAR8
 #define BQN_MAKESTR bqn_makeC8Vec
 #endif
 
-#if UTF16
-#define PCRE2_CODE_UNIT_WIDTH 16
-#define CHAR_TYPE PCRE2_UCHAR16
-#define BQN_MAKESTR bqn_makeC16Vec
-#endif
-
-#if UTF32
-#define PCRE2_CODE_UNIT_WIDTH 32
-#define CHAR_TYPE PCRE2_UCHAR32
-#define BQN_MAKESTR bqn_makeC32Vec
-#endif
 
 #include <pcre2.h>
 
@@ -32,10 +31,11 @@ BQNV bqn_evalCStr(const char* str);
 
 static void print_error(int code) {
     CHAR_TYPE message[256];
-    if (pcre2_get_error_message(code, message, sizeof(message) / sizeof(CHAR_TYPE)))
+    if (pcre2_get_error_message(code, message, sizeof(message) / sizeof(CHAR_TYPE))) {
         printf("Regex error: ");
         printf((const char *)message);
         printf("\n");
+    }
 }
 
 BQNV substring_list_to_bqnv(CHAR_TYPE **strings, PCRE2_SIZE *lengths, BQNV* stringlist, int rc){
@@ -47,9 +47,9 @@ BQNV substring_list_to_bqnv(CHAR_TYPE **strings, PCRE2_SIZE *lengths, BQNV* stri
 }
 
 int compile(CHAR_TYPE *pattern, pcre2_code **re,
-    bool jit, bool utf, bool ucp,
-    bool multiline, bool greedy, bool anchored,
-    bool caseless, bool extended) {
+            bool jit, bool utf, bool ucp,
+            bool multiline, bool greedy, bool anchored,
+            bool caseless, bool extended) {
 
     uint32_t options = 0;
     if (utf) options |= PCRE2_UTF;
@@ -64,10 +64,10 @@ int compile(CHAR_TYPE *pattern, pcre2_code **re,
     PCRE2_SIZE erroffset;
 
     *re = pcre2_compile(
-        pattern, PCRE2_ZERO_TERMINATED,
-        options,
-        &error, &erroffset,
-        NULL);
+            pattern, PCRE2_ZERO_TERMINATED,
+            options,
+            &error, &erroffset,
+            NULL);
 
     if (!*re) {
         print_error(error);
@@ -88,11 +88,11 @@ bool test(pcre2_code* re, CHAR_TYPE *input) {
 
     int rc;
     rc = pcre2_match(
-        re, input, PCRE2_ZERO_TERMINATED,
-        offset, 
-        options,
-        match_data,
-        NULL);
+            re, input, PCRE2_ZERO_TERMINATED,
+            offset, 
+            options,
+            match_data,
+            NULL);
 
     pcre2_match_data_free(match_data);
     return rc > 0;
@@ -109,11 +109,11 @@ BQNV imatch(pcre2_code* re, CHAR_TYPE *input) {
 
     int rc;
     rc = pcre2_match(
-        re, input, PCRE2_ZERO_TERMINATED,
-        offset, 
-        options,
-        match_data,
-        NULL);
+            re, input, PCRE2_ZERO_TERMINATED,
+            offset, 
+            options,
+            match_data,
+            NULL);
 
     if (rc == PCRE2_ERROR_NOMATCH) {
         pcre2_match_data_free(match_data);
@@ -158,11 +158,11 @@ BQNV match(pcre2_code* re, CHAR_TYPE *input) {
 
     int rc;
     rc = pcre2_match(
-        re, input, PCRE2_ZERO_TERMINATED,
-        offset, 
-        options,
-        match_data,
-        NULL);
+            re, input, PCRE2_ZERO_TERMINATED,
+            offset, 
+            options,
+            match_data,
+            NULL);
 
     if (rc == PCRE2_ERROR_NOMATCH) {
         pcre2_match_data_free(match_data);
@@ -210,11 +210,11 @@ BQNV matchall(pcre2_code* re, CHAR_TYPE *input, bool overlapping) {
     int rc;
     for (;;) {
         rc = pcre2_match(
-            re, input, PCRE2_ZERO_TERMINATED,
-            offset, 
-            options,
-            match_data,
-            NULL);
+                re, input, PCRE2_ZERO_TERMINATED,
+                offset, 
+                options,
+                match_data,
+                NULL);
 
         if (rc < 0) {
             switch (rc) {
@@ -229,10 +229,10 @@ BQNV matchall(pcre2_code* re, CHAR_TYPE *input, bool overlapping) {
         pcre2_substring_list_get(match_data, &listptr, &lengthsptr);
         retlist = bqn_call2(append, retlist, substring_list_to_bqnv(listptr, lengthsptr, stringlist, rc));
         pcre2_substring_list_free((PCRE2_SPTR*)listptr);
-        
+
         offset = overlapping ? offset+1: ovector[1];
     }
-        
+
     free(stringlist);
     pcre2_match_data_free(match_data);
     return retlist;
@@ -254,12 +254,12 @@ BQNV replace(pcre2_code* re, CHAR_TYPE *replacement, CHAR_TYPE *input, const siz
     int rc;
     for (;;) {
         rc = pcre2_substitute(
-            re, input, PCRE2_ZERO_TERMINATED,
-            offset,
-            options,
-            match_data, NULL,
-            replacement, PCRE2_ZERO_TERMINATED,
-            output, &outlength);
+                re, input, PCRE2_ZERO_TERMINATED,
+                offset,
+                options,
+                match_data, NULL,
+                replacement, PCRE2_ZERO_TERMINATED,
+                output, &outlength);
 
         if (rc == PCRE2_ERROR_NOMEMORY) {
             free(output);
