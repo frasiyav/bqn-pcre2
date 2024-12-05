@@ -3,11 +3,11 @@ Basic regex functionality via the pcre2 library.
 
 Requires installed pcre2 library and CBQN compiled with FFI support.
 
-`make` by default produces shared object files for character widths 8, 16 and 32.
-
-Use `make UTF8` to only make for UTF8, or similarly for `UTF16` and `UTF32`.
-
-To import in UTF mode use `pcre2 ← {utf⇐8} •Import "pcre2.bqn"`, and similarly `utf⇐16`, `utf⇐32`.
+## Modes
+Set the character width when importing by passing an options namespace with `mode ⇐ "c8","c16","c32", or "utf8"`.
+For example: `pcre2 ← {mode⇐"c8"} •Import "pcre2.bqn"`
+If not given, it is imported in the mode specified in `defaults.bqn`.
+(Note that CBQN uses c8, c16, and c32 representations by default so utf8 mode is not usually what you want.)
 
 ## Functions
 
@@ -57,7 +57,12 @@ Options are given as a namespace `{option⇐value, ...}` and can be passed as `�
   * `extended` - Ignore whitespace and comments in regular expressions. Default: `extended⇐0`.
   * `substitute_extended` - Extended replacement processing mode. Default: `substitute_extended⇐0`.
   
-Other options:
 
+Other options:
   * `bufsize` - Initial size of output buffer when doing replacement. Automatically resizes if too small. Default: `bufsize⇐0`.
   * `overlap` - MatchAll, after matching, will only move offset by 1 character rather than to end of the match. Default: `overlap⇐0`.
+
+Options are given as a namespace `{option⇐value, ...}` and can be passed as `𝕨` to `•Import`, `Compile`, `_MatchAll`, and `_ReplaceAll_`.
+  * `usejit` - Enable jit compiling of regular expressions.
+  * `overlapping` - Whether `MatchAll` should advance only a single character after a previous match instead of to the end of the match. (Currently must be set when pcre2.bqn is imported.)
+  * `initsubbuf` - Initial buffer size for replacements.
